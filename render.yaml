@@ -1,5 +1,5 @@
 # Blueprint: https://render.com/docs/blueprint-spec
-# После push: Render Dashboard → New → Blueprint → выбрать репозиторий
+# URL сервисов: https://{name}.onrender.com
 
 databases:
   - name: flower-db
@@ -26,29 +26,20 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: APP_URL
-        fromService:
-          type: web
-          name: flower-web
-          envVarKey: RENDER_EXTERNAL_URL
+        value: https://flower-web.onrender.com
       - key: CORS_ORIGIN
-        fromService:
-          type: web
-          name: flower-web
-          envVarKey: RENDER_EXTERNAL_URL
+        value: https://flower-web.onrender.com
 
   - type: web
     name: flower-web
     runtime: static
     rootDir: frontend
     buildCommand: npm install && npm run build
-    staticPublishPath: ./frontend/build
+    staticPublishPath: ./build
     routes:
       - type: rewrite
         source: /*
         destination: /index.html
     envVars:
       - key: REACT_APP_API_URL
-        fromService:
-          type: web
-          name: flower-api
-          envVarKey: RENDER_EXTERNAL_URL
+        value: https://flower-api.onrender.com
