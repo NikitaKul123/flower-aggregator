@@ -1,0 +1,439 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int      @id @default(autoincrement())
+  email       String   @unique
+  password    String
+  name        String
+  phone       String?
+  role        Role     @default(CUSTOMER)
+  avatar      String?
+  isBlocked   Boolean  @default(false)
+  blockedAt   DateTime?
+  blockedReason String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  shop        Shop?    @relation("UserShop", fields: [shopId], references: [id])
+  shopId      Int?     @unique
+
+  orders              Order[]
+  messages            Message[]
+  wishlistItems       WishlistItem[]
+  notifications       Notification[]
+  notificationSettings NotificationSettings?
+  statusChanges       OrderStatusHistory[]
+  preferences         UserPreferences?
+  addresses           DeliveryAddress[]
+  shopCourier         ShopCourier?
+  courierOrders       Order[]              @relation("OrderCourier")
+  orderReviews        OrderReview[]
+  stockAlerts         StockAlert[]
+  shopSubscriptions   ShopSubscription[]
+  shopFavorites       ShopFavorite[]
+  shopCrmProfiles     ShopCustomerCRM[]
+  adminAuditLogs      AdminAuditLog[]     @relation("AdminAuditActor")
+  platformMessagesSent ShopPlatformMessage[] @relation("PlatformMessageSender")
+}
+
+model Shop {
+  id            Int      @id @default(autoincrement())
+  name          String
+  address       String
+  phone         String?
+  avatar        String?
+  rating        Float    @default(4.5)
+  deliveryTime       String
+  sameDayDelivery    Boolean  @default(true)
+  serviceDistricts   String[] @default([])
+  deliverySlots      Json?
+  maxDeliveryDays    Int      @default(7)
+  isVerified         Boolean  @default(false)
+  isSuspended        Boolean  @default(false)
+  autoHideZeroStock  Boolean  @default(false)
+
+  owner         User?    @relation("UserShop")
+  ownerId       Int?     @unique
+
+  products      Product[]
+  orders        Order[]
+  notifications Notification[]
+  notificationSettings NotificationSettings?
+  promoCodes    PromoCode[]
+  couriers      ShopCourier[]
+  subscriptions ShopSubscription[]
+  favorites     ShopFavorite[]
+  customerCrm   ShopCustomerCRM[]
+  platformMessages ShopPlatformMessage[]
+  createdAt     DateTime @default(now())
+}
+
+model ShopCourier {
+  id        Int      @id @default(autoincrement())
+  shopId    Int
+  userId    Int      @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([shopId, isActive])
+}
+
+model Product {
+  id            Int           @id @default(autoincrement())
+  name          String
+  price         Int
+  description   String?
+  image         String
+  images        String[]
+  category      String
+  isActive      Boolean       @default(true)
+  status        ProductStatus @default(ACTIVE)
+  stock         Int?
+  isOutOfStock  Boolean       @default(false)
+  isTemplate    Boolean       @default(false)
+
+  shopId        Int
+  shop          Shop          @relation(fields: [shopId], references: [id])
+
+  wishlistItems WishlistItem[]
+  stockAlerts   StockAlert[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @default(now()) @updatedAt
+}
+
+model UserPreferences {
+  id             Int     @id @default(autoincrement())
+  userId         Int     @unique
+  deliveryNotes  String?
+  contactMethod  String? @default("phone")
+  newsletter     Boolean @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model DeliveryAddress {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  label     AddressLabel @default(OTHER)
+  title     String?
+  address   String
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PromoCode {
+  id            Int          @id @default(autoincrement())
+  shopId        Int
+  code          String
+  description   String?
+  discountType  DiscountType
+  discountValue Int
+  minOrder      Int          @default(0)
+  maxUses       Int?
+  usedCount     Int          @default(0)
+  validFrom     DateTime?
+  validTo       DateTime?
+  isActive      Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+
+  shop   Shop    @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@unique([shopId, code])
+  @@index([shopId, isActive])
+}
+
+model WishlistItem {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  productId Int
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+}
+
+model Order {
+  id            Int         @id @default(autoincrement())
+  status        OrderStatus @default(PENDING)
+  total         Int
+  discount      Int         @default(0)
+  promoCode     String?
+  deliveryInfo  Json
+  items         Json
+
+  userId        Int
+  shopId        Int
+  promoCodeId   Int?
+  isPickup      Boolean    @default(false)
+  courierId     Int?
+  courierAssignedAt DateTime?
+  shopNotes         String?
+  deliveryPhoto       String?
+  recipientSignature  String?
+  recipientName       String?
+  deliveredAt         DateTime?
+
+  user          User       @relation(fields: [userId], references: [id])
+  shop          Shop       @relation(fields: [shopId], references: [id])
+  promo         PromoCode? @relation(fields: [promoCodeId], references: [id])
+  courier       User?      @relation("OrderCourier", fields: [courierId], references: [id])
+
+  messages      Message[]
+  statusHistory OrderStatusHistory[]
+  review        OrderReview?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model OrderReview {
+  id          Int       @id @default(autoincrement())
+  orderId     Int       @unique
+  userId      Int
+  rating      Int
+  text        String?
+  shopReply   String?
+  shopReplyAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model StockAlert {
+  id         Int       @id @default(autoincrement())
+  userId     Int
+  productId  Int
+  createdAt  DateTime  @default(now())
+  notifiedAt DateTime?
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([productId, notifiedAt])
+}
+
+model ShopSubscription {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  shopId    Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, shopId])
+  @@index([shopId])
+}
+
+model ShopFavorite {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  shopId    Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, shopId])
+  @@index([userId])
+}
+
+model ShopCustomerCRM {
+  id        Int      @id @default(autoincrement())
+  shopId    Int
+  userId    Int
+  tags      String[] @default([])
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([shopId, userId])
+  @@index([shopId])
+}
+
+model ShopPlatformMessage {
+  id             Int      @id @default(autoincrement())
+  shopId         Int
+  senderUserId   Int
+  isFromPlatform Boolean  @default(false)
+  text           String?
+  imageUrl       String?
+  isRead         Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  shop   Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  sender User @relation("PlatformMessageSender", fields: [senderUserId], references: [id])
+
+  @@index([shopId, createdAt])
+}
+
+model Message {
+  id          Int      @id @default(autoincrement())
+
+  text        String?
+  imageUrl    String?
+
+  isFromShop    Boolean        @default(false)
+  isFromCourier Boolean        @default(false)
+  channel       MessageChannel @default(SHOP)
+  isRead        Boolean        @default(false)
+  deliveredAt   DateTime       @default(now())
+
+  userId      Int
+  orderId     Int
+
+  user        User     @relation(fields: [userId], references: [id])
+  order       Order    @relation(fields: [orderId], references: [id])
+
+  createdAt   DateTime @default(now())
+
+  @@index([orderId, channel])
+}
+
+model Notification {
+  id        Int              @id @default(autoincrement())
+  type      NotificationType
+  title     String
+  message   String
+  link      String
+  orderId   Int?
+  groupKey  String?
+  count     Int              @default(1)
+  readAt    DateTime?
+  userId    Int?
+  shopId    Int?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  user User? @relation(fields: [userId], references: [id])
+  shop Shop? @relation(fields: [shopId], references: [id])
+
+  @@index([userId, readAt])
+  @@index([shopId, readAt])
+  @@index([groupKey, userId])
+  @@index([groupKey, shopId])
+}
+
+model NotificationSettings {
+  id           Int     @id @default(autoincrement())
+  userId       Int?    @unique
+  shopId       Int?    @unique
+  enableOrder  Boolean @default(true)
+  enableChat   Boolean @default(true)
+  enableStatus Boolean @default(true)
+  enableStock  Boolean @default(true)
+  enableShop   Boolean @default(true)
+  enableEmail       Boolean @default(true)
+  enableBrowserPush Boolean @default(true)
+  soundEnabled      Boolean @default(true)
+  doNotDisturb Boolean @default(false)
+  dndFrom      String?
+  dndTo        String?
+
+  user User? @relation(fields: [userId], references: [id])
+  shop Shop? @relation(fields: [shopId], references: [id])
+}
+
+model AdminAuditLog {
+  id          Int      @id @default(autoincrement())
+  actorUserId Int
+  action      String
+  entityType  String
+  entityId    Int?
+  message     String
+  meta        Json?
+  createdAt   DateTime @default(now())
+
+  actor User @relation("AdminAuditActor", fields: [actorUserId], references: [id])
+
+  @@index([createdAt])
+  @@index([entityType, entityId])
+}
+
+model OrderStatusHistory {
+  id              Int          @id @default(autoincrement())
+  orderId         Int
+  fromStatus      OrderStatus?
+  toStatus        OrderStatus
+  comment         String?
+  changedByUserId Int
+  createdAt       DateTime     @default(now())
+
+  order     Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  changedBy User  @relation(fields: [changedByUserId], references: [id])
+
+  @@index([orderId])
+}
+
+enum Role {
+  CUSTOMER
+  SHOP_ADMIN
+  COURIER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum MessageChannel {
+  SHOP
+  COURIER
+  SHOP_COURIER
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  ASSEMBLING
+  READY
+  DELIVERING
+  DELIVERED
+  NO_CONTACT
+  CANCELLED
+}
+
+enum NotificationType {
+  ORDER
+  CHAT
+  STATUS
+  STOCK
+  SHOP
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  HIDDEN
+}
+
+enum AddressLabel {
+  HOME
+  WORK
+  OTHER
+}
+
+enum DiscountType {
+  PERCENT
+  FIXED
+}

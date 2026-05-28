@@ -1,0 +1,9 @@
+/**
+ * URL backend API (без /api в конце).
+ * Локально: http://localhost:5000
+ * Прод: REACT_APP_API_URL=https://your-api.onrender.com
+ */
+export const API_BASE = (process.env.REACT_APP_API_URL || 'http://localhost:5000').replace(
+    /\/$/,
+    ''
+);
