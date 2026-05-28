@@ -40,9 +40,8 @@ services:
     name: flower-web
     runtime: static
     rootDir: frontend
-    plan: free
     buildCommand: npm install && npm run build
-    staticPublishPath: build
+    staticPublishPath: ./frontend/build
     routes:
       - type: rewrite
         source: /*
