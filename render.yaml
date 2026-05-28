@@ -26,9 +26,15 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: APP_URL
-        value: https://flower-web.onrender.com
+        fromService:
+          type: web
+          name: flower-web
+          envVarKey: RENDER_EXTERNAL_URL
       - key: CORS_ORIGIN
-        value: https://flower-web.onrender.com
+        fromService:
+          type: web
+          name: flower-web
+          envVarKey: RENDER_EXTERNAL_URL
 
   - type: web
     name: flower-web
@@ -42,4 +48,7 @@ services:
         destination: /index.html
     envVars:
       - key: REACT_APP_API_URL
-        value: https://flower-api.onrender.com
+        fromService:
+          type: web
+          name: flower-api
+          envVarKey: RENDER_EXTERNAL_URL
