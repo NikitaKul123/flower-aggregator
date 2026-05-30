@@ -41,6 +41,7 @@ model User {
   shopCrmProfiles     ShopCustomerCRM[]
   adminAuditLogs      AdminAuditLog[]     @relation("AdminAuditActor")
   platformMessagesSent ShopPlatformMessage[] @relation("PlatformMessageSender")
+  pushSubscriptions   PushSubscription[]
 }
 
 model Shop {
@@ -72,6 +73,7 @@ model Shop {
   favorites     ShopFavorite[]
   customerCrm   ShopCustomerCRM[]
   platformMessages ShopPlatformMessage[]
+  pushSubscriptions PushSubscription[]
   createdAt     DateTime @default(now())
 }
 
@@ -355,6 +357,24 @@ model NotificationSettings {
 
   user User? @relation(fields: [userId], references: [id])
   shop Shop? @relation(fields: [shopId], references: [id])
+}
+
+model PushSubscription {
+  id        Int      @id @default(autoincrement())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userId    Int?
+  shopId    Int?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shop Shop? @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([shopId])
 }
 
 model AdminAuditLog {

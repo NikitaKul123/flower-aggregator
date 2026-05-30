@@ -4,13 +4,20 @@ import { AuthContext } from '../context/AuthContext';
 import { fetchNotificationSettings, saveNotificationSettings } from '../api/notificationsApi';
 import { cardClass, pageTitleClass, btnPrimary, btnSecondary, labelClass, inputClass } from '../utils/ui';
 import {
-    requestBrowserNotificationPermission,
     getBrowserNotificationPermission,
     getBrowserPushPermissionLabel,
     isBrowserPushEnabledInApp,
     syncBrowserPushPreference,
     dispatchBrowserPushChanged
 } from '../utils/browserNotify';
+import {
+    subscribeToWebPush,
+    unsubscribeFromWebPush,
+    isWebPushSupported,
+    isWebPushSubscribedInApp,
+    isLikelyIos,
+    isStandalonePwa
+} from '../utils/webPush';
 
 function NotificationSettings() {
     const { token, user } = useContext(AuthContext);
@@ -82,35 +89,50 @@ function NotificationSettings() {
 
     const handleAllowPush = async () => {
         setBrowserMsg('');
-        const permission = await requestBrowserNotificationPermission();
-        refreshBrowserPermission();
+        if (!isWebPushSupported()) {
+            setBrowserMsg('Браузер не поддерживает Web Push. На iPhone: Safari → Поделиться → «На экран Домой», iOS 16.4+.');
+            return;
+        }
 
-        if (permission === 'unsupported') {
-            setBrowserMsg('Браузер не поддерживает уведомления');
-            return;
-        }
-        if (permission === 'denied') {
-            setBrowserMsg(
-                'Браузер отклонил уведомления. Разрешите их в настройках сайта (иконка замка в адресной строке → Уведомления).'
-            );
-            await savePushSetting(false);
-            return;
-        }
-        if (permission === 'granted') {
+        try {
+            const result = await subscribeToWebPush(token);
+            refreshBrowserPermission();
+
+            if (result.reason === 'denied') {
+                setBrowserMsg(
+                    'Уведомления запрещены. Разрешите в настройках сайта (замок в адресной строке) или iPhone → Уведомления.'
+                );
+                await savePushSetting(false);
+                return;
+            }
+            if (result.reason === 'no-vapid') {
+                setBrowserMsg('На сервере не настроены VAPID-ключи для push.');
+                return;
+            }
+            if (!result.ok) {
+                setBrowserMsg('Не удалось включить push. Попробуйте снова или установите сайт на домашний экран (iPhone).');
+                return;
+            }
+
             await savePushSetting(true);
-            setBrowserMsg('Push включены: статус заказа и сообщения в чате');
-            return;
+            let msg = 'Push включены — уведомления придут даже когда сайт закрыт.';
+            if (isLikelyIos() && !isStandalonePwa()) {
+                msg += ' На iPhone: Safari → Поделиться → «На экран Домой», затем откройте с иконки.';
+            }
+            setBrowserMsg(msg);
+        } catch (e) {
+            console.error(e);
+            setBrowserMsg('Ошибка подключения push');
         }
-        setBrowserMsg('Разрешение не получено');
     };
 
     const handleDisablePush = async () => {
         setBrowserMsg('');
         try {
+            await unsubscribeFromWebPush(token);
             await savePushSetting(false);
-            setBrowserMsg(
-                'Push отключены в приложении. Чтобы сбросить разрешение браузера: настройки сайта → Уведомления → Запретить.'
-            );
+            refreshBrowserPermission();
+            setBrowserMsg('Push отключены на этом устройстве.');
         } catch {
             setBrowserMsg('Не удалось сохранить настройку');
         }
@@ -185,7 +207,11 @@ function NotificationSettings() {
                     <p className="text-sm text-gray-600 mb-3">
                         В приложении:{' '}
                         <strong>
-                            {pushEnabledInApp ? 'Включены' : 'Выключены'}
+                            {pushEnabledInApp && isWebPushSubscribedInApp()
+                                ? 'Push активны на устройстве'
+                                : pushEnabledInApp
+                                    ? 'Включены (нужна подписка)'
+                                    : 'Выключены'}
                         </strong>
                     </p>
                     <div className="flex flex-wrap gap-2 mb-3">
@@ -205,9 +231,8 @@ function NotificationSettings() {
                         </button>
                     </div>
                     <p className="text-xs text-gray-500">
-                        «Разрешить push» открывает системный запрос браузера (если вы ещё не отвечали).
-                        Push по статусу — при «Изменение статуса», по чату — при «Сообщения в чате».
-                        В открытом чате push не показывается.
+                        Web Push приходит с сервера, даже если вкладка закрыта. «Разрешить push» — системный запрос и подписка устройства.
+                        На iPhone надёжнее: установить на домашний экран (iOS 16.4+). Push по статусу — при «Изменение статуса», по чату — при «Сообщения в чате».
                     </p>
                     {browserMsg && <p className="text-sm text-gray-600 mt-2">{browserMsg}</p>}
                 </section>

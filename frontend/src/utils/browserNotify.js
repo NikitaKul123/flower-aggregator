@@ -1,4 +1,5 @@
 import { ORDER_STATUS_LABELS as STATUS_LABELS } from './orderStatuses';
+import { isWebPushSubscribedInApp } from './webPush';
 
 const STORAGE_KEY = 'flower_browser_push_enabled';
 
@@ -59,6 +60,7 @@ export async function requestBrowserNotificationPermission() {
 }
 
 export function canShowBrowserNotifications() {
+    if (isWebPushSubscribedInApp()) return false;
     return (
         appAllowsBrowserPush
         && typeof Notification !== 'undefined'

@@ -35,6 +35,7 @@ import superAdminAnalyticsRouter from './routes/superAdminAnalytics.js';
 import superAdminSettingsRouter from './routes/superAdminSettings.js';
 import shopPlatformChatRouter from './routes/shopPlatformChat.js';
 import superAdminPlatformChatRouter from './routes/superAdminPlatformChat.js';
+import pushRouter from './routes/push.js';
 import { notFoundHandler, errorHandler } from './middleware/errorHandler.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -80,6 +81,7 @@ export function createApp() {
     app.use('/api/super-admin/analytics', superAdminAnalyticsRouter);
     app.use('/api/super-admin/settings', superAdminSettingsRouter);
     app.use('/api/super-admin/platform-chats', superAdminPlatformChatRouter);
+    app.use('/api/push', pushRouter);
 
     app.use(notFoundHandler);
     app.use(errorHandler);

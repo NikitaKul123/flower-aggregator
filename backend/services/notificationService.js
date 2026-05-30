@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 
 import { getIo } from '../socket/io.js';
+import { sendWebPushToRecipient } from './webPushService.js';
 
 
 
@@ -91,6 +92,24 @@ function shouldNotify(settings, type) {
     return true;
 
 }
+
+
+
+async function maybeSendWebPush({ settings, type, userId, shopId, title, message, link, groupKey }) {
+    if (!settings?.enableBrowserPush) return;
+    if (!shouldNotify(settings, type)) return;
+
+    void sendWebPushToRecipient({
+        userId,
+        shopId,
+        title,
+        body: message,
+        link,
+        tag: groupKey || `${type}-${userId || shopId}-${Date.now()}`
+    });
+}
+
+
 
 /** Запись в ленту: статусы всегда (для счётчика), остальное — по настройкам */
 function shouldPersistNotification(settings, type) {
@@ -457,6 +476,17 @@ export async function pushNotification({
 
             emitNotificationUpdate({ userId: uid, shopId: sid });
 
+            void maybeSendWebPush({
+                settings,
+                type,
+                userId: uid,
+                shopId: sid,
+                title,
+                message,
+                link,
+                groupKey
+            });
+
             return updated;
 
         }
@@ -492,6 +522,17 @@ export async function pushNotification({
 
 
     emitNotificationUpdate({ userId: uid, shopId: sid });
+
+    void maybeSendWebPush({
+        settings,
+        type,
+        userId: uid,
+        shopId: sid,
+        title,
+        message,
+        link,
+        groupKey
+    });
 
     return created;
 

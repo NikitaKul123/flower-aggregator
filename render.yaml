@@ -35,6 +35,13 @@ services:
           type: web
           name: flower-web
           envVarKey: RENDER_EXTERNAL_URL
+      # Web Push: node scripts/generate-vapid-keys.mjs — задайте в Dashboard
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        value: mailto:support@flowershop.local
 
   - type: web
     name: flower-web
@@ -52,3 +59,5 @@ services:
           type: web
           name: flower-api
           envVarKey: RENDER_EXTERNAL_URL
+      - key: REACT_APP_VAPID_PUBLIC_KEY
+        sync: false
