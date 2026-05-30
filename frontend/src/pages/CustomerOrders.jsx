@@ -1,11 +1,11 @@
-import { useState, useEffect, useContext, useCallback, Fragment, useRef } from 'react';
+import { useState, useEffect, useContext, useCallback, Fragment, useRef, useMemo } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE } from '../config/api';
 import { createAuthenticatedSocket } from '../utils/socketClient';
 import { AuthContext } from '../context/AuthContext';
 import { CartContext } from '../context/CartContext';
-import { cardClass, pageTitleClass, btnPink, btnSecondary, statusBadgeClass, inputClass } from '../utils/ui';
+import { cardClass, pageTitleClass, btnPink, btnSecondary, statusBadgeClass } from '../utils/ui';
 import {
     loadFilters,
     saveFilters,
@@ -23,6 +23,8 @@ import { submitOrderReview } from '../api/reviewsApi';
 import { dispatchNotificationsUpdated } from '../utils/notifications';
 import OrderReviewForm from '../components/OrderReviewForm';
 import OrderDetailsPanel, { OrderDeliveryBadge } from '../components/OrderDetailsPanel';
+import CatalogSearchToolbar from '../components/CatalogSearchToolbar';
+import { filterFieldClass } from '../components/MobileFilterSheet';
 import { getOrderDeliverySummary } from '../utils/orderDeliveryDisplay';
 import { ORDER_STATUS_LABELS as statusLabels, ORDER_STATUS_COLORS as statusColors } from '../utils/orderStatuses';
 
@@ -40,6 +42,7 @@ function CustomerOrders() {
     const [notification, setNotification] = useState(null);
     const [filters, setFilters] = useState(() => loadFilters(CUSTOMER_KEY, defaultCustomerFilters));
     const [filtersOpen, setFiltersOpen] = useState(false);
+    const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
     const [highlightedIds, setHighlightedIds] = useState(() => new Set());
     const [reorderingId, setReorderingId] = useState(null);
 
@@ -232,6 +235,101 @@ function CustomerOrders() {
         setFilters(prev => ({ ...prev, onlyUnread: !prev.onlyUnread }));
     };
 
+    const activeFiltersCount = useMemo(() => {
+        let n = 0;
+        if (filters.status !== 'ALL') n += 1;
+        if (filters.dateFrom) n += 1;
+        if (filters.dateTo) n += 1;
+        if (filters.minTotal) n += 1;
+        if (filters.maxTotal) n += 1;
+        if (filters.onlyUnread) n += 1;
+        return n;
+    }, [filters]);
+
+    const resetOrderFilters = () => {
+        setFilters({ ...defaultCustomerFilters });
+        setMobileFiltersOpen(false);
+    };
+
+    const orderFilterFields = (
+        <div className="space-y-4">
+            <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">
+                    Статус
+                </label>
+                <select
+                    value={filters.status}
+                    onChange={e => setFilters({ ...filters, status: e.target.value })}
+                    className={filterFieldClass}
+                >
+                    <option value="ALL">Все статусы</option>
+                    {Object.keys(statusLabels).map(k => (
+                        <option key={k} value={k}>{statusLabels[k]}</option>
+                    ))}
+                </select>
+            </div>
+            <label className="flex items-center gap-3 min-h-[48px] px-1 cursor-pointer">
+                <input
+                    type="checkbox"
+                    checked={filters.onlyUnread}
+                    onChange={e => setFilters({ ...filters, onlyUnread: e.target.checked })}
+                    className="w-5 h-5 rounded border-gray-300 text-pink-600"
+                />
+                <span className="text-sm text-gray-800">Только с непрочитанными</span>
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+                <div>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">
+                        Дата от
+                    </label>
+                    <input
+                        type="date"
+                        value={filters.dateFrom}
+                        onChange={e => setFilters({ ...filters, dateFrom: e.target.value })}
+                        className={filterFieldClass}
+                    />
+                </div>
+                <div>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">
+                        Дата до
+                    </label>
+                    <input
+                        type="date"
+                        value={filters.dateTo}
+                        onChange={e => setFilters({ ...filters, dateTo: e.target.value })}
+                        className={filterFieldClass}
+                    />
+                </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+                <div>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">
+                        Сумма от
+                    </label>
+                    <input
+                        type="number"
+                        placeholder="0"
+                        value={filters.minTotal}
+                        onChange={e => setFilters({ ...filters, minTotal: e.target.value })}
+                        className={filterFieldClass}
+                    />
+                </div>
+                <div>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">
+                        Сумма до
+                    </label>
+                    <input
+                        type="number"
+                        placeholder="∞"
+                        value={filters.maxTotal}
+                        onChange={e => setFilters({ ...filters, maxTotal: e.target.value })}
+                        className={filterFieldClass}
+                    />
+                </div>
+            </div>
+        </div>
+    );
+
     const toggleOpen = (orderId) => {
         markOrderSeen(orderId);
         if (openedOrder === orderId) {
@@ -354,21 +452,21 @@ function CustomerOrders() {
                 <div className="mb-6 bg-green-100 text-green-700 p-4 rounded-2xl text-sm">{notification}</div>
             )}
 
-            <div className={`${cardClass} p-4 sm:p-6 mb-6`}>
-                <div className="flex flex-col sm:flex-row gap-3">
-                    <input
-                        value={filters.search}
-                        onChange={e => setFilters({ ...filters, search: e.target.value })}
-                        className={`${inputClass()} flex-1`}
-                        placeholder="Поиск: № заказа"
-                    />
-                    <button
-                        type="button"
-                        onClick={() => setFiltersOpen(v => !v)}
-                        className={`${btnSecondary} px-5 py-2.5 text-sm shrink-0`}
-                    >
-                        {filtersOpen ? 'Скрыть фильтры' : 'Фильтры'}
-                    </button>
+            <CatalogSearchToolbar
+                searchTerm={filters.search}
+                onSearchChange={(v) => setFilters({ ...filters, search: v })}
+                searchPlaceholder="Поиск: № заказа"
+                activeFiltersCount={activeFiltersCount}
+                mobileFiltersOpen={mobileFiltersOpen}
+                onOpenMobileFilters={() => setMobileFiltersOpen(true)}
+                onCloseMobileFilters={() => setMobileFiltersOpen(false)}
+                filtersOpen={filtersOpen}
+                onToggleFilters={() => setFiltersOpen(v => !v)}
+                filterFields={orderFilterFields}
+                onResetFilters={resetOrderFilters}
+                showReset
+                applyLabel={`Показать · ${orders.length}`}
+                desktopExtra={(
                     <button
                         type="button"
                         onClick={toggleOnlyUnread}
@@ -376,38 +474,21 @@ function CustomerOrders() {
                     >
                         {filters.onlyUnread ? '✓ С обновлениями' : 'С обновлениями'}
                     </button>
-                </div>
-                {filtersOpen && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-4 mt-4 border-t border-gray-100">
-                        <select
-                            value={filters.status}
-                            onChange={e => setFilters({ ...filters, status: e.target.value })}
-                            className={inputClass()}
-                        >
-                            <option value="ALL">Все статусы</option>
-                            {Object.keys(statusLabels).map(k => (
-                                <option key={k} value={k}>{statusLabels[k]}</option>
-                            ))}
-                        </select>
-                        <label className="flex items-center gap-2 text-sm px-2">
-                            <input
-                                type="checkbox"
-                                checked={filters.onlyUnread}
-                                onChange={e => setFilters({ ...filters, onlyUnread: e.target.checked })}
-                            />
-                            Только с непрочитанными
-                        </label>
-                        <input type="date" value={filters.dateFrom} onChange={e => setFilters({ ...filters, dateFrom: e.target.value })} className={inputClass()} />
-                        <input type="date" value={filters.dateTo} onChange={e => setFilters({ ...filters, dateTo: e.target.value })} className={inputClass()} />
-                        <input type="number" placeholder="Сумма от" value={filters.minTotal} onChange={e => setFilters({ ...filters, minTotal: e.target.value })} className={inputClass()} />
-                        <input type="number" placeholder="Сумма до" value={filters.maxTotal} onChange={e => setFilters({ ...filters, maxTotal: e.target.value })} className={inputClass()} />
-                    </div>
                 )}
-                <div className="flex flex-wrap gap-2 mt-4">
-                    <button type="button" onClick={fetchOrders} className={`${btnPink} px-4 py-2 text-sm`}>Применить</button>
-                    <button type="button" onClick={() => setFilters({ ...defaultCustomerFilters })} className={`${btnSecondary} px-4 py-2 text-sm`}>Сбросить</button>
-                </div>
-            </div>
+                mobileAccessory={(
+                    <button
+                        type="button"
+                        onClick={toggleOnlyUnread}
+                        className={`w-full py-2 rounded-xl text-sm font-semibold transition ${
+                            filters.onlyUnread
+                                ? 'bg-pink-600 text-white'
+                                : 'bg-gray-100 text-gray-700'
+                        }`}
+                    >
+                        {filters.onlyUnread ? '✓ Только с обновлениями' : 'С обновлениями'}
+                    </button>
+                )}
+            />
 
             {orders.length === 0 ? (
                 <div className={`${cardClass} p-12 text-center text-gray-500`}>Заказов не найдено</div>

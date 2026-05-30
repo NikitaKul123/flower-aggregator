@@ -40,14 +40,26 @@ function Cart() {
                                 key={item.cartId}
                                 className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 flex flex-col sm:flex-row gap-4 sm:gap-6 shadow-sm border border-gray-100"
                             >
-                                <img
-                                    src={productImageUrl(item)}
-                                    alt={item.name}
-                                    className="w-full sm:w-32 h-40 sm:h-32 object-cover rounded-xl sm:rounded-2xl"
-                                />
+                                <Link
+                                    to={`/product/${item.id}`}
+                                    className="shrink-0 w-full sm:w-32"
+                                >
+                                    <img
+                                        src={productImageUrl(item)}
+                                        alt={item.name}
+                                        className="w-full h-40 sm:h-32 object-cover rounded-xl sm:rounded-2xl hover:opacity-90 transition"
+                                    />
+                                </Link>
 
-                                <div className="flex-1">
-                                    <h3 className="text-xl font-semibold mb-1">{item.name}</h3>
+                                <div className="flex-1 min-w-0">
+                                    <Link
+                                        to={`/product/${item.id}`}
+                                        className="block group/title"
+                                    >
+                                        <h3 className="text-xl font-semibold mb-1 group-hover/title:text-pink-600 transition-colors">
+                                            {item.name}
+                                        </h3>
+                                    </Link>
                                     {item.shop && (
                                         <p className="text-gray-500 text-sm mb-3">{item.shop.name}</p>
                                     )}
