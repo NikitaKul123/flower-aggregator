@@ -379,22 +379,26 @@ function ShopList() {
             : [{ label: 'Главная', to: '/' }, { label: 'Все товары' }];
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
-            <Breadcrumbs items={homeBreadcrumbs} />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-10">
+            <div className="hidden sm:block">
+                <Breadcrumbs items={homeBreadcrumbs} />
+            </div>
 
-            <section className="relative text-center mb-10 sm:mb-12 py-10 sm:py-14 px-4 rounded-[2rem] overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-pink-50 via-white to-rose-50" />
-                <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-pink-200/40 blur-3xl" />
-                <div className="absolute -bottom-20 -left-20 w-56 h-56 rounded-full bg-rose-200/35 blur-3xl" />
-                <div className="relative">
-                    <p className="inline-flex items-center gap-2 text-pink-600 font-semibold text-xs sm:text-sm uppercase tracking-widest mb-3 px-3 py-1 rounded-full bg-white/70 border border-pink-100">
+            {/* Мобилка: одна строка; планшет/десктоп: полный hero */}
+            <section className="mb-4 sm:mb-12 sm:relative sm:text-center sm:py-14 sm:px-4 sm:rounded-[2rem] sm:overflow-hidden">
+                <div className="hidden sm:block absolute inset-0 bg-gradient-to-br from-pink-50 via-white to-rose-50" />
+                <div className="hidden sm:block absolute -top-24 -right-24 w-64 h-64 rounded-full bg-pink-200/40 blur-3xl" />
+                <div className="hidden sm:block absolute -bottom-20 -left-20 w-56 h-56 rounded-full bg-rose-200/35 blur-3xl" />
+                <div className="relative sm:py-0">
+                    <p className="hidden sm:inline-flex items-center gap-2 text-pink-600 font-semibold text-sm uppercase tracking-widest mb-3 px-3 py-1 rounded-full bg-white/70 border border-pink-100">
                         <span className="w-1.5 h-1.5 rounded-full bg-pink-500 animate-pulse" />
                         FlowerShop
                     </p>
-                    <h1 className="text-3xl sm:text-4xl md:text-[2.75rem] font-bold text-gray-900 mb-3 tracking-tight">
-                        Букеты всех магазинов города
+                    <h1 className="text-lg font-bold text-gray-900 sm:text-4xl md:text-[2.75rem] sm:mb-3 tracking-tight">
+                        <span className="sm:hidden">Букеты города</span>
+                        <span className="hidden sm:inline">Букеты всех магазинов города</span>
                     </h1>
-                    <p className="text-gray-600 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+                    <p className="hidden sm:block text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
                         Сравнивайте цены, выбирайте магазин или сразу добавляйте понравившийся букет в корзину
                     </p>
                 </div>
