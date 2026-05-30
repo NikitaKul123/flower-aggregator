@@ -1,4 +1,5 @@
 import { useEffect, useState, useContext, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useSearchParams } from 'react-router-dom';
 import Avatar from '../components/Avatar';
 import { mediaUrl } from '../utils/media';
@@ -256,6 +257,145 @@ function ShopCatalogCard({ shop }) {
     );
 }
 
+const filterFieldClass =
+    'w-full rounded-xl bg-gray-50 border-0 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/25';
+
+function FilterSlidersIcon({ className = 'w-5 h-5' }) {
+    return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+            <path d="M4 6h16M4 12h10M4 18h6" strokeLinecap="round" />
+            <circle cx="17" cy="6" r="2" fill="currentColor" stroke="none" />
+            <circle cx="13" cy="12" r="2" fill="currentColor" stroke="none" />
+            <circle cx="9" cy="18" r="2" fill="currentColor" stroke="none" />
+        </svg>
+    );
+}
+
+function CatalogFilterFields({
+    view,
+    sortBy,
+    setSortBy,
+    districtFilter,
+    setDistrictFilter,
+    sameDayOnly,
+    setSameDayOnly,
+    selectedCategory,
+    setSelectedCategory,
+    selectedShopId,
+    setSelectedShopId,
+    minPrice,
+    setMinPrice,
+    maxPrice,
+    setMaxPrice,
+    categories,
+    shops
+}) {
+    return (
+        <div className="space-y-4">
+            <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">
+                    Сортировка
+                </label>
+                <select
+                    value={sortBy}
+                    onChange={e => setSortBy(e.target.value)}
+                    className={filterFieldClass}
+                >
+                    {SORT_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                </select>
+            </div>
+
+            <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">
+                    Район доставки
+                </label>
+                <input
+                    type="text"
+                    placeholder="Например, Центр"
+                    value={districtFilter}
+                    onChange={e => setDistrictFilter(e.target.value)}
+                    className={filterFieldClass}
+                />
+            </div>
+
+            <label className="flex items-center gap-3 min-h-[48px] px-1 cursor-pointer">
+                <input
+                    type="checkbox"
+                    checked={sameDayOnly}
+                    onChange={e => setSameDayOnly(e.target.checked)}
+                    className="w-5 h-5 rounded border-gray-300 text-pink-600"
+                />
+                <span className="text-sm text-gray-800">Доставка сегодня</span>
+            </label>
+
+            {view === 'products' && (
+                <>
+                    <div>
+                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">
+                            Категория
+                        </label>
+                        <select
+                            value={selectedCategory}
+                            onChange={e => setSelectedCategory(e.target.value)}
+                            className={filterFieldClass}
+                        >
+                            <option value="all">Все категории</option>
+                            {categories.filter(c => c !== 'all').map(c => (
+                                <option key={c} value={c}>{c}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">
+                            Магазин
+                        </label>
+                        <select
+                            value={selectedShopId}
+                            onChange={e => setSelectedShopId(e.target.value)}
+                            className={filterFieldClass}
+                        >
+                            <option value="all">Все магазины</option>
+                            {shops.map(s => (
+                                <option key={s.id} value={s.id}>{s.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">
+                                Цена от
+                            </label>
+                            <input
+                                type="number"
+                                min="0"
+                                placeholder="0"
+                                value={minPrice}
+                                onChange={e => setMinPrice(e.target.value)}
+                                className={filterFieldClass}
+                            />
+                        </div>
+                        <div>
+                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">
+                                Цена до
+                            </label>
+                            <input
+                                type="number"
+                                min="0"
+                                placeholder="∞"
+                                value={maxPrice}
+                                onChange={e => setMaxPrice(e.target.value)}
+                                className={filterFieldClass}
+                            />
+                        </div>
+                    </div>
+                </>
+            )}
+        </div>
+    );
+}
+
 function ShopList() {
     const { addToCart, toggleWishlist, wishlist } = useContext(CartContext);
     const { user } = useContext(AuthContext);
@@ -283,6 +423,7 @@ function ShopList() {
     const [maxPrice, setMaxPrice] = useState('');
     const [sortBy, setSortBy] = useState('default');
     const [filtersOpen, setFiltersOpen] = useState(false);
+    const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
     const [districtFilter, setDistrictFilter] = useState('');
     const [sameDayOnly, setSameDayOnly] = useState(false);
 
@@ -362,6 +503,35 @@ function ShopList() {
         return list;
     }, [shops, sortBy, searchTerm]);
 
+    const activeFiltersCount = useMemo(() => {
+        let n = 0;
+        if (sortBy !== 'default') n += 1;
+        if (districtFilter.trim()) n += 1;
+        if (sameDayOnly) n += 1;
+        if (view === 'products') {
+            if (selectedCategory !== 'all') n += 1;
+            if (selectedShopId !== 'all') n += 1;
+            if (minPrice) n += 1;
+            if (maxPrice) n += 1;
+        }
+        return n;
+    }, [
+        sortBy,
+        districtFilter,
+        sameDayOnly,
+        view,
+        selectedCategory,
+        selectedShopId,
+        minPrice,
+        maxPrice
+    ]);
+
+    const resultCountLabel = !loading
+        ? (view === 'products'
+            ? `${filteredProducts.length} из ${products.length}`
+            : `${sortedShops.length}`)
+        : '';
+
     const resetFilters = () => {
         setSearchTerm('');
         setSelectedCategory('all');
@@ -371,6 +541,40 @@ function ShopList() {
         setSortBy('default');
         setDistrictFilter('');
         setSameDayOnly(false);
+        setMobileFiltersOpen(false);
+    };
+
+    useEffect(() => {
+        setMobileFiltersOpen(false);
+    }, [view]);
+
+    useEffect(() => {
+        if (!mobileFiltersOpen) return undefined;
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = prev;
+        };
+    }, [mobileFiltersOpen]);
+
+    const filterFieldsProps = {
+        view,
+        sortBy,
+        setSortBy,
+        districtFilter,
+        setDistrictFilter,
+        sameDayOnly,
+        setSameDayOnly,
+        selectedCategory,
+        setSelectedCategory,
+        selectedShopId,
+        setSelectedShopId,
+        minPrice,
+        setMinPrice,
+        maxPrice,
+        setMaxPrice,
+        categories,
+        shops
     };
 
     const homeBreadcrumbs =
@@ -384,28 +588,96 @@ function ShopList() {
                 <Breadcrumbs items={homeBreadcrumbs} />
             </div>
 
-            {/* Мобилка: одна строка; планшет/десктоп: полный hero */}
-            <section className="mb-4 sm:mb-12 sm:relative sm:text-center sm:py-14 sm:px-4 sm:rounded-[2rem] sm:overflow-hidden">
-                <div className="hidden sm:block absolute inset-0 bg-gradient-to-br from-pink-50 via-white to-rose-50" />
-                <div className="hidden sm:block absolute -top-24 -right-24 w-64 h-64 rounded-full bg-pink-200/40 blur-3xl" />
-                <div className="hidden sm:block absolute -bottom-20 -left-20 w-56 h-56 rounded-full bg-rose-200/35 blur-3xl" />
-                <div className="relative sm:py-0">
-                    <p className="hidden sm:inline-flex items-center gap-2 text-pink-600 font-semibold text-sm uppercase tracking-widest mb-3 px-3 py-1 rounded-full bg-white/70 border border-pink-100">
+            <section className="hidden sm:block mb-12 relative text-center py-14 px-4 rounded-[2rem] overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-pink-50 via-white to-rose-50" />
+                <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-pink-200/40 blur-3xl" />
+                <div className="absolute -bottom-20 -left-20 w-56 h-56 rounded-full bg-rose-200/35 blur-3xl" />
+                <div className="relative">
+                    <p className="inline-flex items-center gap-2 text-pink-600 font-semibold text-sm uppercase tracking-widest mb-3 px-3 py-1 rounded-full bg-white/70 border border-pink-100">
                         <span className="w-1.5 h-1.5 rounded-full bg-pink-500 animate-pulse" />
                         FlowerShop
                     </p>
-                    <h1 className="text-lg font-bold text-gray-900 sm:text-4xl md:text-[2.75rem] sm:mb-3 tracking-tight">
-                        <span className="sm:hidden">Букеты города</span>
-                        <span className="hidden sm:inline">Букеты всех магазинов города</span>
+                    <h1 className="text-4xl md:text-[2.75rem] font-bold text-gray-900 mb-3 tracking-tight">
+                        Букеты всех магазинов города
                     </h1>
-                    <p className="hidden sm:block text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
+                    <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
                         Сравнивайте цены, выбирайте магазин или сразу добавляйте понравившийся букет в корзину
                     </p>
                 </div>
             </section>
 
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                <div className="inline-flex p-1 bg-gray-100 rounded-2xl self-start sm:self-auto">
+            {/* ——— Мобилка: компактная шапка каталога ——— */}
+            <div className="sm:hidden mb-4 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                    <h1 className="text-lg font-bold text-gray-900">Букеты города</h1>
+                    {resultCountLabel && (
+                        <span className="text-xs text-gray-500 tabular-nums shrink-0">
+                            {view === 'products' ? `${resultCountLabel} тов.` : `${resultCountLabel} маг.`}
+                        </span>
+                    )}
+                </div>
+
+                <div className="flex p-0.5 bg-gray-100 rounded-xl">
+                    <button
+                        type="button"
+                        onClick={() => switchView('products')}
+                        className={`flex-1 py-2 rounded-[10px] text-sm font-semibold transition ${
+                            view === 'products'
+                                ? 'bg-white text-pink-700 shadow-sm'
+                                : 'text-gray-600'
+                        }`}
+                    >
+                        Товары
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => switchView('shops')}
+                        className={`flex-1 py-2 rounded-[10px] text-sm font-semibold transition ${
+                            view === 'shops'
+                                ? 'bg-white text-pink-700 shadow-sm'
+                                : 'text-gray-600'
+                        }`}
+                    >
+                        Магазины
+                    </button>
+                </div>
+
+                <div className="flex gap-2 items-center">
+                    <div className="relative flex-1 min-w-0">
+                        <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm" aria-hidden>
+                            🔍
+                        </span>
+                        <input
+                            type="search"
+                            placeholder={view === 'products' ? 'Поиск букета…' : 'Поиск магазина…'}
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                            className="w-full rounded-2xl bg-gray-100 border-0 pl-10 pr-4 py-3 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
+                        />
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setMobileFiltersOpen(true)}
+                        className={`relative shrink-0 flex items-center justify-center w-12 h-12 rounded-2xl transition ${
+                            activeFiltersCount > 0
+                                ? 'bg-pink-50 text-pink-600 ring-1 ring-pink-200'
+                                : 'bg-gray-100 text-gray-700'
+                        }`}
+                        aria-label="Фильтры и сортировка"
+                    >
+                        <FilterSlidersIcon />
+                        {activeFiltersCount > 0 && (
+                            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-pink-600 text-white text-[10px] font-bold flex items-center justify-center">
+                                {activeFiltersCount}
+                            </span>
+                        )}
+                    </button>
+                </div>
+            </div>
+
+            {/* ——— Десктоп: вкладки и счётчик ——— */}
+            <div className="hidden sm:flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div className="inline-flex p-1 bg-gray-100 rounded-2xl">
                     <button
                         type="button"
                         onClick={() => switchView('products')}
@@ -430,17 +702,18 @@ function ShopList() {
                     </button>
                 </div>
 
-                {!loading && (
+                {resultCountLabel && (
                     <p className="text-sm text-gray-500">
                         {view === 'products'
-                            ? `${filteredProducts.length} из ${products.length} товаров`
-                            : `${sortedShops.length} магазинов`}
+                            ? `${resultCountLabel} товаров`
+                            : `${resultCountLabel} магазинов`}
                     </p>
                 )}
             </div>
 
-            <div className="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-100 mb-8">
-                <div className="flex flex-col sm:flex-row gap-3">
+            {/* ——— Десктоп: поиск и фильтры ——— */}
+            <div className="hidden sm:block bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-100 mb-8">
+                <div className="flex flex-row gap-3">
                     <input
                         type="search"
                         placeholder={view === 'products' ? 'Поиск букета или магазина...' : 'Поиск магазина...'}
@@ -460,80 +733,78 @@ function ShopList() {
                     <button
                         type="button"
                         onClick={() => setFiltersOpen(v => !v)}
-                        className={`${btnSecondary} px-5 py-2.5 text-sm shrink-0`}
+                        className={`${btnSecondary} px-5 py-2.5 text-sm shrink-0 relative`}
                     >
-                        {filtersOpen ? 'Скрыть фильтры' : 'Фильтры'}
+                        {filtersOpen ? 'Скрыть' : 'Фильтры'}
+                        {activeFiltersCount > 0 && (
+                            <span className="ml-1.5 inline-flex min-w-[18px] h-[18px] px-1 rounded-full bg-pink-600 text-white text-[10px] items-center justify-center">
+                                {activeFiltersCount}
+                            </span>
+                        )}
                     </button>
                 </div>
 
                 {filtersOpen && (
-                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mt-4 pt-4 border-t border-gray-100">
-                        <input
-                            type="text"
-                            placeholder="Район доставки"
-                            value={districtFilter}
-                            onChange={e => setDistrictFilter(e.target.value)}
-                            className="border border-gray-300 rounded-xl px-4 py-2.5 text-sm sm:col-span-2"
-                        />
-                        <label className="flex items-center gap-2 text-sm px-2 cursor-pointer sm:col-span-2">
-                            <input
-                                type="checkbox"
-                                checked={sameDayOnly}
-                                onChange={e => setSameDayOnly(e.target.checked)}
-                                className="rounded border-gray-300"
-                            />
-                            Доставка сегодня
-                        </label>
-                {view === 'products' && (
-                    <>
-                        <select
-                            value={selectedCategory}
-                            onChange={e => setSelectedCategory(e.target.value)}
-                            className="border border-gray-300 rounded-xl px-4 py-2.5 text-sm"
-                        >
-                            <option value="all">Все категории</option>
-                            {categories.filter(c => c !== 'all').map(c => (
-                                <option key={c} value={c}>{c}</option>
-                            ))}
-                        </select>
-                        <select
-                            value={selectedShopId}
-                            onChange={e => setSelectedShopId(e.target.value)}
-                            className="border border-gray-300 rounded-xl px-4 py-2.5 text-sm"
-                        >
-                            <option value="all">Все магазины</option>
-                            {shops.map(s => (
-                                <option key={s.id} value={s.id}>{s.name}</option>
-                            ))}
-                        </select>
-                        <input
-                            type="number"
-                            min="0"
-                            placeholder="Цена от"
-                            value={minPrice}
-                            onChange={e => setMinPrice(e.target.value)}
-                            className="border border-gray-300 rounded-xl px-4 py-2.5 text-sm"
-                        />
-                        <input
-                            type="number"
-                            min="0"
-                            placeholder="Цена до"
-                            value={maxPrice}
-                            onChange={e => setMaxPrice(e.target.value)}
-                            className="border border-gray-300 rounded-xl px-4 py-2.5 text-sm"
-                        />
-                    </>
-                )}
+                    <div className="mt-4 pt-4 border-t border-gray-100">
+                        <CatalogFilterFields {...filterFieldsProps} />
                         <button
                             type="button"
                             onClick={resetFilters}
-                            className="text-sm text-pink-600 hover:text-pink-700 font-medium sm:col-span-2 lg:col-span-4 text-left"
+                            className="mt-4 text-sm text-pink-600 hover:text-pink-700 font-medium"
                         >
                             Сбросить фильтры
                         </button>
                     </div>
                 )}
             </div>
+
+            {mobileFiltersOpen && createPortal(
+                <div className="fixed inset-0 z-50 sm:hidden" role="dialog" aria-modal="true" aria-label="Фильтры">
+                    <button
+                        type="button"
+                        className="absolute inset-0 bg-slate-900/40"
+                        aria-label="Закрыть"
+                        onClick={() => setMobileFiltersOpen(false)}
+                    />
+                    <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl max-h-[88dvh] flex flex-col animate-[mobile-sheet-up_0.25s_ease-out]">
+                        <div className="shrink-0 flex items-center justify-between px-4 pt-4 pb-2 border-b border-gray-100">
+                            <h2 className="text-lg font-semibold text-gray-900">Фильтры</h2>
+                            <button
+                                type="button"
+                                onClick={() => setMobileFiltersOpen(false)}
+                                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-gray-500 hover:bg-gray-100"
+                                aria-label="Закрыть"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto px-4 py-4">
+                            <CatalogFilterFields {...filterFieldsProps} />
+                        </div>
+                        <div className="shrink-0 p-4 pt-2 border-t border-gray-100 flex flex-col gap-2 safe-area-bottom">
+                            {activeFiltersCount > 0 && (
+                                <button
+                                    type="button"
+                                    onClick={resetFilters}
+                                    className="w-full py-3 text-sm font-medium text-pink-600"
+                                >
+                                    Сбросить всё
+                                </button>
+                            )}
+                            <button
+                                type="button"
+                                onClick={() => setMobileFiltersOpen(false)}
+                                className={`${btnPrimary} w-full py-3.5 rounded-2xl text-base`}
+                            >
+                                Показать{view === 'products'
+                                    ? ` · ${filteredProducts.length}`
+                                    : ` · ${sortedShops.length}`}
+                            </button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
 
             {error && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl text-red-700 text-sm">

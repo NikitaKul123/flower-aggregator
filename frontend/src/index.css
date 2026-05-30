@@ -129,6 +129,15 @@
     }
   }
 
+  @keyframes mobile-sheet-up {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
   .mobile-drawer-header {
     @apply flex items-center justify-between px-4 py-4 border-b border-gray-100 shrink-0;
   }
