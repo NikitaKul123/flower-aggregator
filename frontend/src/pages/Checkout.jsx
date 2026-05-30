@@ -15,6 +15,7 @@ import { fetchShopById } from '../api/catalogApi';
 import { inputClass, labelClass, cardClass, pageTitleClass, btnPrimary, btnSecondary } from '../utils/ui';
 import { buildDeliveryDateOptions, DEFAULT_DELIVERY_SLOTS } from '../utils/deliveryOptions';
 import { API_BASE } from '../config/api';
+import { MobileStickyBar } from '../components/MobileStickyBar';
 
 
 
@@ -299,13 +300,13 @@ function Checkout() {
 
     return (
 
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-checkout-sticky lg:pb-8">
 
             <h1 className={`${pageTitleClass} mb-6 sm:mb-10`}>Оформление заказа</h1>
 
 
 
-            <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
+            <form id="checkout-form" onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
 
                 <div className={`${cardClass} p-5 sm:p-8`}>
 
@@ -545,13 +546,28 @@ function Checkout() {
 
 
 
-                <button type="submit" disabled={loading} className={`${btnPrimary} w-full py-4 sm:py-5 text-lg sm:text-xl rounded-2xl sm:rounded-3xl`}>
+                <button type="submit" disabled={loading} className={`${btnPrimary} w-full py-4 sm:py-5 text-lg sm:text-xl rounded-2xl sm:rounded-3xl hidden lg:inline-flex`}>
 
                     {loading ? 'Оформляем заказ...' : 'Подтвердить заказ'}
 
                 </button>
 
             </form>
+
+            <MobileStickyBar className="mobile-sticky-bar--solo">
+                <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-500">К оплате</p>
+                    <p className="text-xl font-bold text-pink-600">{finalTotal.toLocaleString('ru-RU')} ₽</p>
+                </div>
+                <button
+                    type="submit"
+                    form="checkout-form"
+                    disabled={loading}
+                    className={`${btnPrimary} flex-1 max-w-[220px] py-3.5 text-sm min-h-[48px] rounded-2xl`}
+                >
+                    {loading ? 'Оформляем…' : 'Подтвердить'}
+                </button>
+            </MobileStickyBar>
 
         </div>
 

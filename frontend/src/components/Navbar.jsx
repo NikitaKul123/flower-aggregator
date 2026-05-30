@@ -19,12 +19,15 @@ import {
 import { fetchPublicPromos } from '../api/promosApi';
 import { btnPink } from '../utils/ui';
 import UserMenu from './UserMenu';
+import MobileMenuDrawer from './MobileMenuDrawer';
 import { isSuperAdminUser } from '../utils/roles';
 
 const navLinkClass =
     'text-gray-700 hover:text-pink-600 transition text-sm sm:text-base whitespace-nowrap';
 
-function Navbar() {
+const drawerLinkClass = 'mobile-drawer-link';
+
+function Navbar({ mobileCompact = false, drawerOpen = false, onDrawerOpen, onDrawerClose }) {
     const { cart, cartCount } = useContext(CartContext);
     const { user, logout, token } = useContext(AuthContext);
     const navigate = useNavigate();
@@ -128,7 +131,8 @@ function Navbar() {
 
     useEffect(() => {
         setMenuOpen(false);
-    }, [location.pathname]);
+        onDrawerClose?.();
+    }, [location.pathname, onDrawerClose]);
 
     useEffect(() => {
         const onCartAdded = (e) => {
@@ -595,27 +599,43 @@ function Navbar() {
                 : '/profile';
     const avatarSrc = isShop ? user?.shopAvatar : user?.avatar;
 
-    const NavLinks = ({ mobile = false }) => {
+    const closeMobile = () => {
+        setMenuOpen(false);
+        onDrawerClose?.();
+    };
+
+    const linkClass = (drawer) => (drawer ? drawerLinkClass : navLinkClass);
+
+    const NavLinks = ({ mobile = false, drawer = false }) => {
+        const cls = linkClass(drawer);
+        const onNav = () => (mobile || drawer) && closeMobile();
+
         if (isSuperAdmin) {
             return (
                 <>
-                    <Link to="/super-admin" className={navLinkClass} onClick={() => mobile && setMenuOpen(false)}>
+                    <Link to="/super-admin" className={cls} onClick={onNav}>
                         Обзор
                     </Link>
-                    <Link to="/super-admin/users" className={navLinkClass} onClick={() => mobile && setMenuOpen(false)}>
+                    <Link to="/super-admin/users" className={cls} onClick={onNav}>
                         Пользователи
                     </Link>
-                    <Link to="/super-admin/shops" className={navLinkClass} onClick={() => mobile && setMenuOpen(false)}>
+                    <Link to="/super-admin/shops" className={cls} onClick={onNav}>
                         Магазины
                     </Link>
-                    <Link to="/super-admin/shop-chats" className={navLinkClass} onClick={() => mobile && setMenuOpen(false)}>
+                    <Link to="/super-admin/shop-chats" className={cls} onClick={onNav}>
                         Чаты магазинов
                     </Link>
-                    <Link to="/super-admin/orders" className={navLinkClass} onClick={() => mobile && setMenuOpen(false)}>
+                    <Link to="/super-admin/orders" className={cls} onClick={onNav}>
                         Заказы
                     </Link>
-                    <Link to="/super-admin/products" className={navLinkClass} onClick={() => mobile && setMenuOpen(false)}>
+                    <Link to="/super-admin/products" className={cls} onClick={onNav}>
                         Товары
+                    </Link>
+                    <Link to="/super-admin/analytics" className={cls} onClick={onNav}>
+                        Аналитика
+                    </Link>
+                    <Link to="/super-admin/settings" className={cls} onClick={onNav}>
+                        Настройки
                     </Link>
                 </>
             );
@@ -624,13 +644,13 @@ function Navbar() {
         if (isCourier) {
             return (
                 <>
-                    <Link to="/courier/orders" className={navLinkClass} onClick={() => mobile && setMenuOpen(false)}>
+                    <Link to="/courier/orders" className={cls} onClick={onNav}>
                         Мои доставки
                     </Link>
                     <Link
                         to="/courier/notifications"
-                        className={`${navLinkClass} relative pr-6`}
-                        onClick={() => mobile && setMenuOpen(false)}
+                        className={`${cls} relative pr-6`}
+                        onClick={onNav}
                     >
                         🛎️ Уведомления
                         {notifications > 0 && (
@@ -650,28 +670,28 @@ function Navbar() {
 
         return (
         <>
-            <Link to="/" className={navLinkClass} onClick={() => mobile && setMenuOpen(false)}>
+            <Link to="/" className={cls} onClick={onNav}>
                 Магазины
             </Link>
 
             {!isShop && (
                 <>
-                    <Link to="/wishlist" className={navLinkClass} onClick={() => mobile && setMenuOpen(false)}>
+                    <Link to="/wishlist" className={cls} onClick={onNav}>
                         ♡ Избранное
                     </Link>
                 </>
             )}
 
             {!isShop && (
-                <Link to="/orders" className={navLinkClass} onClick={() => mobile && setMenuOpen(false)}>
+                <Link to="/orders" className={cls} onClick={onNav}>
                     Мои заказы
                 </Link>
             )}
 
             <Link
                 to={isShop ? '/shop/notifications' : '/notifications'}
-                className={`${navLinkClass} relative pr-6`}
-                onClick={() => mobile && setMenuOpen(false)}
+                className={`${cls} relative pr-6`}
+                onClick={onNav}
             >
                 🛎️ Уведомления
                 {notifications > 0 && (
@@ -683,20 +703,47 @@ function Navbar() {
 
             {isShop && (
                 <>
-                    <Link to="/shop/dashboard" className={navLinkClass} onClick={() => mobile && setMenuOpen(false)}>
+                    <Link to="/shop/dashboard" className={cls} onClick={onNav}>
                         Дашборд
                     </Link>
-                    <Link to="/shop/couriers" className={navLinkClass} onClick={() => mobile && setMenuOpen(false)}>
+                    <Link to="/shop/products" className={cls} onClick={onNav}>
+                        Товары
+                    </Link>
+                    <Link to="/shop/analytics" className={cls} onClick={onNav}>
+                        Аналитика
+                    </Link>
+                    <Link to="/shop/promos" className={cls} onClick={onNav}>
+                        Промокоды
+                    </Link>
+                    <Link to="/shop/crm" className={cls} onClick={onNav}>
+                        CRM
+                    </Link>
+                    <Link to="/shop/reviews" className={cls} onClick={onNav}>
+                        Отзывы
+                    </Link>
+                    <Link to="/shop/couriers" className={cls} onClick={onNav}>
                         Курьеры
                     </Link>
-                    <Link to="/shop/platform-chat" className={navLinkClass} onClick={() => mobile && setMenuOpen(false)}>
+                    <Link to="/shop/platform-chat" className={cls} onClick={onNav}>
                         Поддержка
+                    </Link>
+                    <Link to="/shop/profile" className={cls} onClick={onNav}>
+                        Профиль магазина
+                    </Link>
+                    <Link to="/shop/settings/notifications" className={cls} onClick={onNav}>
+                        Настройки уведомлений
                     </Link>
                 </>
             )}
 
             {!isShop && (
-                <Link to="/cart" className={`${navLinkClass} relative pr-5`} onClick={() => mobile && setMenuOpen(false)}>
+                <Link to="/profile" className={cls} onClick={onNav}>
+                    Профиль
+                </Link>
+            )}
+
+            {!isShop && (
+                <Link to="/cart" className={`${cls} relative pr-5`} onClick={onNav}>
                     🛒 Корзина
                     {cartCount > 0 && (
                         <span className="absolute -top-1 right-0 bg-pink-600 text-white text-xs rounded-full min-w-5 h-5 px-1 flex items-center justify-center">
@@ -767,17 +814,29 @@ function Navbar() {
                             )}
                         </div>
 
-                        <button
-                            type="button"
-                            className="lg:hidden p-2 rounded-xl border border-gray-200 text-gray-700"
-                            onClick={() => setMenuOpen(prev => !prev)}
-                            aria-label="Меню"
-                        >
-                            {menuOpen ? '✕' : '☰'}
-                        </button>
+                        {mobileCompact ? (
+                            <button
+                                type="button"
+                                className="lg:hidden min-h-[48px] min-w-[48px] px-4 rounded-xl border border-gray-200 text-gray-700 font-medium text-sm"
+                                onClick={() => (drawerOpen ? onDrawerClose?.() : onDrawerOpen?.())}
+                                aria-label="Меню"
+                                aria-expanded={drawerOpen}
+                            >
+                                Ещё
+                            </button>
+                        ) : (
+                            <button
+                                type="button"
+                                className="lg:hidden min-h-[48px] min-w-[48px] p-2 rounded-xl border border-gray-200 text-gray-700"
+                                onClick={() => setMenuOpen(prev => !prev)}
+                                aria-label="Меню"
+                            >
+                                {menuOpen ? '✕' : '☰'}
+                            </button>
+                        )}
                     </div>
 
-                    {menuOpen && (
+                    {!mobileCompact && menuOpen && (
                         <div className="lg:hidden mt-4 pt-4 border-t border-gray-100 flex flex-col gap-4">
                             <NavLinks mobile />
                             {user ? (
@@ -789,13 +848,13 @@ function Navbar() {
                                 />
                             ) : (
                                 <div className="flex flex-col gap-3">
-                                    <Link to="/login" className={navLinkClass} onClick={() => setMenuOpen(false)}>
+                                    <Link to="/login" className={navLinkClass} onClick={closeMobile}>
                                         Войти
                                     </Link>
                                     <Link
                                         to="/register"
-                                        className={`${btnPink} text-center px-4 py-3`}
-                                        onClick={() => setMenuOpen(false)}
+                                        className={`${btnPink} text-center px-4 py-3 min-h-[48px]`}
+                                        onClick={closeMobile}
                                     >
                                         Регистрация
                                     </Link>
@@ -805,6 +864,40 @@ function Navbar() {
                     )}
                 </div>
             </nav>
+
+            <MobileMenuDrawer
+                open={mobileCompact && drawerOpen}
+                onClose={() => onDrawerClose?.()}
+                title="Меню"
+            >
+                <NavLinks drawer />
+                {user ? (
+                    <div className="mt-2 pt-3 border-t border-gray-100 px-1">
+                        <UserMenu
+                            displayName={getDisplayName()}
+                            avatarSrc={avatarSrc}
+                            profilePath={profilePath}
+                            onLogout={handleLogout}
+                        />
+                    </div>
+                ) : (
+                    <div className="mt-2 pt-3 border-t border-gray-100 flex flex-col gap-2 px-1">
+                        <Link to="/login" className={drawerLinkClass} onClick={closeMobile}>
+                            Войти
+                        </Link>
+                        <Link to="/register" className={`${btnPink} text-center min-h-[48px] flex items-center justify-center`} onClick={closeMobile}>
+                            Регистрация
+                        </Link>
+                        <Link to="/shop/login" className={drawerLinkClass} onClick={closeMobile}>
+                            Вход для магазина
+                        </Link>
+                        <Link to="/courier/login" className={drawerLinkClass} onClick={closeMobile}>
+                            Вход для курьера
+                        </Link>
+                    </div>
+                )}
+            </MobileMenuDrawer>
+
             {toastPortal}
         </>
     );

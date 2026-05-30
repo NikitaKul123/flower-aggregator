@@ -463,7 +463,7 @@ function ShopList() {
                 </div>
 
                 {filtersOpen && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4 pt-4 border-t border-gray-100">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mt-4 pt-4 border-t border-gray-100">
                         <input
                             type="text"
                             placeholder="Район доставки"
@@ -538,14 +538,14 @@ function ShopList() {
             )}
 
             {loading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
                     {Array(8).fill(0).map((_, i) => (
                         view === 'products' ? <ProductSkeleton key={i} /> : <ShopSkeleton key={i} />
                     ))}
                 </div>
             ) : view === 'products' ? (
                 filteredProducts.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
                         {filteredProducts.map(product => (
                             <ProductCatalogCard
                                 key={product.id}
@@ -569,7 +569,7 @@ function ShopList() {
                     </div>
                 )
             ) : sortedShops.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
                     {sortedShops.map(shop => (
                         <ShopCatalogCard key={shop.id} shop={shop} />
                     ))}

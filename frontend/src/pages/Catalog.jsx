@@ -164,7 +164,7 @@ function Catalog() {
                 </div>
 
                 {filtersOpen && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-4 pt-4 border-t border-gray-100">
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mt-4 pt-4 border-t border-gray-100">
 
                 <select
                     value={selectedCategory}
@@ -212,7 +212,7 @@ function Catalog() {
 
             {/* PRODUCTS */}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-8">
 
                 {loading ? (
                     Array(8).fill(0).map((_, i) => (

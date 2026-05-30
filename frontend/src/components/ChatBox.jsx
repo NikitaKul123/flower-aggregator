@@ -414,7 +414,7 @@ export default function ChatBox({
                         Только просмотр
                     </div>
                 ) : (
-                    <div className="shrink-0 border-t border-gray-100 bg-white p-3 sm:p-4 flex flex-col sm:flex-row gap-2">
+                    <div className="shrink-0 border-t border-gray-100 bg-white p-3 sm:p-4 flex flex-col sm:flex-row gap-2 chat-input-bar safe-area-bottom">
                         <input
                             value={text}
                             onChange={e => onInputChange(e.target.value)}

@@ -24,6 +24,7 @@ import {
     isShopsHomeView
 } from '../utils/navigationPaths';
 import Breadcrumbs from '../components/Breadcrumbs';
+import { MobileStickyBar } from '../components/MobileStickyBar';
 
 function formatReviewDate(iso) {
     return new Date(iso).toLocaleDateString('ru-RU', {
@@ -184,7 +185,7 @@ function ProductDetail() {
     ];
 
     return (
-        <div className="max-w-7xl mx-auto px-4 py-10">
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:py-10 pb-mobile-sticky lg:pb-10">
             <Breadcrumbs items={breadcrumbItems} />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -199,10 +200,10 @@ function ProductDetail() {
                             <img
                                 src={images[selectedImage]}
                                 alt={product.name}
-                                className={`w-full h-[520px] object-cover ${!available ? 'opacity-70 grayscale' : ''}`}
+                                className={`w-full h-[280px] sm:h-[400px] lg:h-[520px] object-cover ${!available ? 'opacity-70 grayscale' : ''}`}
                             />
                         ) : (
-                            <div className="w-full h-[520px] flex items-center justify-center text-gray-400">Нет фото</div>
+                            <div className="w-full h-[280px] sm:h-[400px] lg:h-[520px] flex items-center justify-center text-gray-400">Нет фото</div>
                         )}
                     </div>
                     {images.length > 1 && (
@@ -295,7 +296,7 @@ function ProductDetail() {
                     </div>
                     )}
 
-                    <div className="space-y-4 mt-auto">
+                    <div className="space-y-4 mt-auto hidden lg:block">
                         <div className="flex gap-4">
                             <button
                                 type="button"
@@ -385,6 +386,32 @@ function ProductDetail() {
                     </p>
                 )}
             </section>
+
+            {available && (
+                <MobileStickyBar>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-lg font-bold text-pink-600 truncate">
+                            {product.price.toLocaleString('ru-RU')} ₽
+                        </p>
+                        <p className="text-xs text-gray-500 truncate">{product.name}</p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => addToCart(product, quantity)}
+                        className="flex-1 max-w-[160px] bg-gradient-to-r from-pink-600 to-rose-600 text-white py-3.5 px-3 rounded-2xl font-semibold text-sm min-h-[48px]"
+                    >
+                        В корзину
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => toggleWishlist(product)}
+                        className="min-h-[48px] min-w-[48px] border-2 border-gray-200 rounded-2xl text-xl shrink-0"
+                        aria-label="Избранное"
+                    >
+                        {wishlist.some(item => item.id === product.id) ? '❤️' : '♡'}
+                    </button>
+                </MobileStickyBar>
+            )}
         </div>
     );
 }
