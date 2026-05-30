@@ -17,7 +17,7 @@ async function notifyStatusChange(updated, status, shopName) {
         type: 'STATUS',
         title: `Заказ №${updated.id}`,
         message: `Статус изменён на «${label}»`,
-                link: '/orders', // orderId в уведомлении — фронт добавит ?highlight=
+                link: `/orders?highlight=${updated.id}`,
         orderId: updated.id,
         groupKey: `status-${updated.id}`,
         userId: updated.userId

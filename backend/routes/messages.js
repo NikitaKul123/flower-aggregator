@@ -22,6 +22,8 @@ import {
 
 } from '../services/notificationService.js';
 
+import { formatChatPushBody } from '../utils/pushLink.js';
+
 import { SHOP_MESSAGE_TEMPLATES } from '../utils/chatTemplates.js';
 
 import { saveBase64Image } from '../utils/saveImage.js';
@@ -544,7 +546,7 @@ router.post('/order/:orderId', authenticateToken, resolveActor, asyncHandler(asy
 
                     title: `Заказ №${orderId}`,
 
-                    message: `Новое сообщение по заказу №${orderId}`,
+                    message: formatChatPushBody(text, imageUrl, `Новое сообщение по заказу №${orderId}`),
 
                     link: `/shop/orders/${orderId}/chat`,
 
@@ -564,7 +566,7 @@ router.post('/order/:orderId', authenticateToken, resolveActor, asyncHandler(asy
 
                     title: `Заказ №${orderId}`,
 
-                    message: `Новое сообщение от магазина`,
+                    message: formatChatPushBody(text, imageUrl, 'Новое сообщение от магазина'),
 
                     link: `/orders/${orderId}/chat`,
 
@@ -583,7 +585,7 @@ router.post('/order/:orderId', authenticateToken, resolveActor, asyncHandler(asy
                 await pushNotification({
                     type: 'CHAT',
                     title: `Заказ №${orderId}`,
-                    message: `Сообщение от курьера`,
+                    message: formatChatPushBody(text, imageUrl, 'Сообщение от курьера'),
                     link: `/shop/orders/${orderId}/chat?channel=shop-courier`,
                     orderId,
                     groupKey,
@@ -593,7 +595,7 @@ router.post('/order/:orderId', authenticateToken, resolveActor, asyncHandler(asy
                 await pushNotification({
                     type: 'CHAT',
                     title: `Заказ №${orderId}`,
-                    message: `Сообщение от магазина`,
+                    message: formatChatPushBody(text, imageUrl, 'Сообщение от магазина'),
                     link: `/courier/orders/${orderId}/chat?tab=shop`,
                     orderId,
                     groupKey,
@@ -604,7 +606,7 @@ router.post('/order/:orderId', authenticateToken, resolveActor, asyncHandler(asy
             await pushNotification({
                 type: 'CHAT',
                 title: `Заказ №${orderId}`,
-                message: `Сообщение от курьера`,
+                message: formatChatPushBody(text, imageUrl, 'Сообщение от курьера'),
                 link: `/orders/${orderId}/chat?channel=courier`,
                 orderId,
                 groupKey,
@@ -614,7 +616,7 @@ router.post('/order/:orderId', authenticateToken, resolveActor, asyncHandler(asy
             await pushNotification({
                 type: 'CHAT',
                 title: `Заказ №${orderId}`,
-                message: `Сообщение от клиента`,
+                message: formatChatPushBody(text, imageUrl, 'Сообщение от клиента'),
                 link: `/courier/orders/${orderId}/chat`,
                 orderId,
                 groupKey,

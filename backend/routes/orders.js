@@ -125,7 +125,7 @@ router.post('/', authenticateToken, requireCustomer, async (req, res) => {
             type: 'ORDER',
             title: `Новый заказ №${order.id}`,
             message: `Сумма ${order.total.toLocaleString('ru-RU')} ₽`,
-            link: '/shop/orders',
+            link: `/shop/orders?highlight=${order.id}`,
             orderId: order.id,
             groupKey: `order-${order.id}`,
             shopId

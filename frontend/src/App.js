@@ -54,6 +54,7 @@ import SuperAdminShopChats from './pages/SuperAdminShopChats';
 import SuperAdminShopChat from './pages/SuperAdminShopChat';
 import SuperAdminSettings from './pages/SuperAdminSettings';
 import ShopPlatformChat from './pages/ShopPlatformChat';
+import PushNavigationListener from './components/PushNavigationListener';
 
 function isChatRoute(pathname) {
   return /\/chat$/.test(pathname);
@@ -68,9 +69,12 @@ function AppShell() {
     return () => document.documentElement.classList.remove('chat-no-scroll');
   }, [chatPage]);
 
+  const pushNav = <PushNavigationListener />;
+
   if (chatPage) {
     return (
       <div className="h-dvh max-h-dvh w-full overflow-hidden grid grid-rows-[auto_1fr] bg-slate-50">
+        {pushNav}
         <Navbar />
         <main className="min-h-0 overflow-hidden">
           <Routes>
@@ -131,6 +135,7 @@ function AppShell() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      {pushNav}
       <Navbar />
       <main>
         <Routes>

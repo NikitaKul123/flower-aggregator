@@ -1,5 +1,6 @@
 import webpush from 'web-push';
 import { PrismaClient } from '@prisma/client';
+import { resolvePushLink } from '../utils/pushLink.js';
 
 const prisma = new PrismaClient();
 
@@ -88,16 +89,19 @@ async function findSubscriptions({ userId, shopId }) {
     });
 }
 
-export async function sendWebPushToRecipient({ userId, shopId, title, body, link, tag }) {
+export async function sendWebPushToRecipient({ userId, shopId, title, body, link, tag, orderId, type, groupKey }) {
     if (!isWebPushConfigured()) return { sent: 0, skipped: true };
 
     const subs = await findSubscriptions({ userId, shopId });
     if (!subs.length) return { sent: 0 };
 
+    const path = resolvePushLink({ link, orderId, type, groupKey, shopId });
+
     const payload = JSON.stringify({
         title: title || 'FlowerShop',
         body: body || '',
-        url: absoluteUrl(link),
+        url: absoluteUrl(path),
+        path,
         tag: tag || `push-${Date.now()}`
     });
 

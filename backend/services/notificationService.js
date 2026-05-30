@@ -95,7 +95,7 @@ function shouldNotify(settings, type) {
 
 
 
-async function maybeSendWebPush({ settings, type, userId, shopId, title, message, link, groupKey }) {
+async function maybeSendWebPush({ settings, type, userId, shopId, title, message, link, groupKey, orderId }) {
     if (!settings?.enableBrowserPush) return;
     if (!shouldNotify(settings, type)) return;
 
@@ -105,7 +105,10 @@ async function maybeSendWebPush({ settings, type, userId, shopId, title, message
         title,
         body: message,
         link,
-        tag: groupKey || `${type}-${userId || shopId}-${Date.now()}`
+        tag: groupKey || `${type}-${userId || shopId}-${Date.now()}`,
+        orderId,
+        type,
+        groupKey
     });
 }
 
@@ -484,7 +487,8 @@ export async function pushNotification({
                 title,
                 message,
                 link,
-                groupKey
+                groupKey,
+                orderId
             });
 
             return updated;
@@ -531,7 +535,8 @@ export async function pushNotification({
         title,
         message,
         link,
-        groupKey
+        groupKey,
+        orderId
     });
 
     return created;
