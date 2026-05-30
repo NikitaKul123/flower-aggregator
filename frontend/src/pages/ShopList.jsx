@@ -56,9 +56,9 @@ function ProductCatalogCard({ product, inStock, isShop, wishlist, toggleWishlist
 
     return (
         <article
-            className={`group relative flex flex-col rounded-3xl overflow-hidden bg-white border transition-all duration-300 ${
+            className={`group relative flex flex-col rounded-2xl sm:rounded-3xl overflow-hidden bg-white border transition-all duration-300 ${
                 inStock
-                    ? 'border-gray-100/80 shadow-sm hover:shadow-xl hover:shadow-pink-500/10 hover:-translate-y-1'
+                    ? 'border-gray-100/80 shadow-sm sm:hover:shadow-xl sm:hover:shadow-pink-500/10 sm:hover:-translate-y-1'
                     : 'border-gray-200/90 shadow-sm opacity-[0.97]'
             }`}
         >
@@ -73,18 +73,18 @@ function ProductCatalogCard({ product, inStock, isShop, wishlist, toggleWishlist
                 <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent pointer-events-none" />
 
                 {product.category && (
-                    <span className="absolute top-3 left-3 z-10 text-[11px] font-semibold uppercase tracking-wide px-2.5 py-1 rounded-full bg-white/90 text-gray-700 backdrop-blur-sm">
+                    <span className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10 text-[10px] sm:text-[11px] font-semibold uppercase tracking-wide px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-white/90 text-gray-700 backdrop-blur-sm">
                         {product.category}
                     </span>
                 )}
 
                 {!inStock && (
-                    <span className="absolute top-3 right-3 z-10 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-gray-900/85 text-white backdrop-blur-sm">
+                    <span className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-gray-900/85 text-white backdrop-blur-sm">
                         Нет в наличии
                     </span>
                 )}
 
-                <span className="absolute bottom-3 right-3 z-10 px-3 py-1.5 rounded-2xl bg-white/95 backdrop-blur-md text-pink-600 font-bold text-lg shadow-lg">
+                <span className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 z-10 px-2 py-1 sm:px-3 sm:py-1.5 rounded-xl sm:rounded-2xl bg-white/95 backdrop-blur-md text-pink-600 font-bold text-sm sm:text-lg shadow-md">
                     {product.price.toLocaleString('ru-RU')} ₽
                 </span>
             </Link>
@@ -93,8 +93,8 @@ function ProductCatalogCard({ product, inStock, isShop, wishlist, toggleWishlist
                 <button
                     type="button"
                     onClick={(e) => { e.preventDefault(); toggleWishlist(product); }}
-                    className={`absolute bottom-14 right-3 z-20 w-10 h-10 rounded-full backdrop-blur-md shadow-md flex items-center justify-center text-lg transition-transform hover:scale-110 ${
-                        isWishlisted ? 'bg-pink-500 text-white' : 'bg-white/90 text-gray-500 hover:text-pink-500'
+                    className={`absolute bottom-11 right-2 sm:bottom-14 sm:right-3 z-20 w-8 h-8 sm:w-10 sm:h-10 rounded-full backdrop-blur-md shadow flex items-center justify-center text-base sm:text-lg transition-transform active:scale-95 sm:hover:scale-110 ${
+                        isWishlisted ? 'bg-pink-500 text-white' : 'bg-white/90 text-gray-500'
                     }`}
                     aria-label="В избранное"
                 >
@@ -102,60 +102,60 @@ function ProductCatalogCard({ product, inStock, isShop, wishlist, toggleWishlist
                 </button>
             )}
 
-            <div className="p-4 sm:p-5 flex flex-col flex-1">
+            <div className="p-3 sm:p-5 flex flex-col flex-1">
                 {product.shop && (
                     <Link
                         to={`/catalog/${product.shop.id}`}
                         state={{ shopName: product.shop.name }}
-                        className="inline-flex items-center gap-2 mb-3 w-fit group/shop"
+                        className="inline-flex items-center gap-1.5 mb-2 sm:mb-3 w-fit group/shop max-w-full"
                     >
                         {product.shop.avatar ? (
                             <img
                                 src={mediaUrl(product.shop.avatar)}
                                 alt=""
-                                className="w-6 h-6 rounded-full object-cover ring-2 ring-white shadow"
+                                className="w-5 h-5 sm:w-6 sm:h-6 rounded-full object-cover ring-1 sm:ring-2 ring-white shadow"
                             />
                         ) : (
-                            <span className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 text-white flex items-center justify-center text-[10px] font-bold shadow">
+                            <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 text-white flex items-center justify-center text-[9px] sm:text-[10px] font-bold shadow">
                                 {product.shop.name?.[0]}
                             </span>
                         )}
-                        <span className="text-xs font-medium text-gray-500 group-hover/shop:text-pink-600 truncate max-w-[120px] transition-colors">
+                        <span className="text-[11px] sm:text-xs font-medium text-gray-500 group-hover/shop:text-pink-600 truncate transition-colors">
                             {product.shop.name}
                         </span>
                         {shopRatingStars(product.shop) && (
-                            <span className="text-xs text-amber-500">{shopRatingStars(product.shop)}</span>
+                            <span className="text-[10px] sm:text-xs text-amber-500 shrink-0">{shopRatingStars(product.shop)}</span>
                         )}
                     </Link>
                 )}
 
-                <Link to={`/product/${product.id}`} className="flex-1">
-                    <h2 className="font-semibold text-gray-900 text-base leading-snug line-clamp-2 group-hover:text-pink-600 transition-colors">
+                <Link to={`/product/${product.id}`} className="flex-1 min-h-0">
+                    <h2 className="font-semibold text-gray-900 text-sm sm:text-base leading-snug line-clamp-2 group-hover:text-pink-600 transition-colors">
                         {product.name}
                     </h2>
                 </Link>
 
                 {!isShop && (
-                    <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
+                    <div className="flex gap-1.5 sm:gap-2 mt-2.5 sm:mt-4 pt-2.5 sm:pt-4 border-t border-gray-100">
                         {inStock ? (
                             <button
                                 type="button"
                                 onClick={() => addToCart(product)}
-                                className="flex-1 bg-gradient-to-r from-pink-600 to-rose-600 text-white text-sm font-semibold py-3 rounded-2xl hover:from-pink-700 hover:to-rose-700 shadow-md shadow-pink-500/20 transition active:scale-[0.98]"
+                                className="flex-1 bg-gradient-to-r from-pink-600 to-rose-600 text-white text-xs sm:text-sm font-semibold py-2.5 sm:py-3 rounded-xl sm:rounded-2xl sm:hover:from-pink-700 sm:hover:to-rose-700 sm:shadow-md sm:shadow-pink-500/20 transition active:scale-[0.98]"
                             >
                                 В корзину
                             </button>
                         ) : (
                             <Link
                                 to={`/product/${product.id}`}
-                                className="flex-1 text-center bg-gray-900 text-white text-sm font-semibold py-3 rounded-2xl hover:bg-gray-800 transition"
+                                className="flex-1 text-center bg-gray-900 text-white text-xs sm:text-sm font-semibold py-2.5 sm:py-3 rounded-xl sm:rounded-2xl sm:hover:bg-gray-800 transition"
                             >
                                 🔔 Уведомить
                             </Link>
                         )}
                         <Link
                             to={`/product/${product.id}`}
-                            className="w-12 h-12 shrink-0 flex items-center justify-center rounded-2xl border border-gray-200 text-gray-600 hover:border-pink-300 hover:text-pink-600 hover:bg-pink-50 transition"
+                            className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 flex items-center justify-center rounded-xl sm:rounded-2xl border border-gray-200 text-gray-600 sm:hover:border-pink-300 sm:hover:text-pink-600 sm:hover:bg-pink-50 transition"
                             title="Подробнее"
                         >
                             →
@@ -167,91 +167,156 @@ function ProductCatalogCard({ product, inStock, isShop, wishlist, toggleWishlist
     );
 }
 
-function ShopCatalogCard({ shop }) {
+function ShopMetaBadges({ shop, size = 'sm' }) {
+    const chip = size === 'sm'
+        ? 'text-[10px] font-medium px-2 py-0.5 rounded-md'
+        : 'text-xs font-medium px-2.5 py-1 rounded-full';
+
     return (
-        <article className="group relative rounded-3xl overflow-hidden bg-white border border-gray-100/80 shadow-sm hover:shadow-xl hover:shadow-pink-500/10 hover:-translate-y-1 transition-all duration-300">
-            <Link
-                to={catalogPath(shop.id, { fromShops: true })}
-                state={{ shopName: shop.name }}
-                className="block relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-pink-100 via-rose-50 to-orange-50"
-            >
-                {shop.avatar ? (
-                    <img
-                        src={mediaUrl(shop.avatar)}
-                        alt=""
-                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <Avatar src={null} name={shop.name} size="xl" className="w-28 h-28 text-4xl ring-4 ring-white/50 shadow-xl" />
-                    </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/25 to-transparent" />
+        <div className="flex flex-wrap items-center gap-1">
+            {shopRatingStars(shop) ? (
+                <span className={`${chip} bg-amber-50 text-amber-800`}>
+                    {shopRatingStars(shop)}
+                </span>
+            ) : (
+                <span className={`${chip} bg-gray-100 text-gray-500`}>Новый</span>
+            )}
+            {shop.isVerified && (
+                <span className={`${chip} bg-emerald-50 text-emerald-700`}>✓</span>
+            )}
+            {shop.sameDayDelivery !== false && (
+                <span className={`${chip} bg-emerald-50 text-emerald-700`}>Сегодня</span>
+            )}
+            {shop.deliveryTime && (
+                <span className={`${chip} bg-gray-100 text-gray-600`}>
+                    {shop.deliveryTime}
+                </span>
+            )}
+        </div>
+    );
+}
 
-                <div className="absolute top-4 right-4 z-20" onClick={(e) => e.preventDefault()}>
-                    <ShopActionButtons shop={shop} compact />
+function ShopCatalogCard({ shop }) {
+    const catalogTo = catalogPath(shop.id, { fromShops: true });
+    const linkState = { shopName: shop.name };
+
+    const shopThumb = (
+        <div className="relative shrink-0 overflow-hidden bg-gradient-to-br from-pink-100 via-rose-50 to-orange-50">
+            {shop.avatar ? (
+                <img
+                    src={mediaUrl(shop.avatar)}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-cover"
+                />
+            ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-pink-500 to-rose-600 text-white text-2xl font-bold">
+                    {shop.name?.[0] || '?'}
                 </div>
+            )}
+        </div>
+    );
 
-                {shop.isVerified && (
-                    <span className="absolute top-4 left-4 z-10 inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-white/95 text-emerald-700 backdrop-blur-sm">
-                        ✓ Проверен
-                    </span>
-                )}
+    return (
+        <article className="group rounded-2xl sm:rounded-3xl overflow-hidden bg-white border border-gray-100 shadow-sm sm:border-gray-100/80 sm:hover:shadow-xl sm:hover:shadow-pink-500/10 sm:hover:-translate-y-1 transition-all duration-300">
+            {/* Мобилка: компактная строка-список */}
+            <div className="sm:hidden">
+                <Link
+                    to={catalogTo}
+                    state={linkState}
+                    className="flex gap-3 p-3 active:bg-gray-50/80 transition-colors"
+                >
+                    <div className="w-[4.5rem] h-[4.5rem] rounded-2xl overflow-hidden ring-1 ring-black/5">
+                        {shopThumb}
+                    </div>
+                    <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
+                        <div className="flex items-start gap-2">
+                            <h2 className="flex-1 font-semibold text-[15px] leading-tight text-gray-900 line-clamp-2">
+                                {shop.name}
+                            </h2>
+                            <span className="shrink-0 text-xl text-gray-300 font-light leading-none pt-0.5" aria-hidden>
+                                ›
+                            </span>
+                        </div>
+                        {shop.address && (
+                            <p className="text-xs text-gray-500 line-clamp-1">{shop.address}</p>
+                        )}
+                        <ShopMetaBadges shop={shop} size="sm" />
+                    </div>
+                </Link>
+                <div
+                    className="flex items-center justify-between gap-2 px-3 pb-3 -mt-0.5"
+                    onClick={(e) => e.preventDefault()}
+                >
+                    <ShopActionButtons shop={shop} compact className="gap-1.5" />
+                    <Link
+                        to={catalogTo}
+                        state={linkState}
+                        className="text-xs font-semibold text-pink-600 px-3 py-2 rounded-xl bg-pink-50 active:bg-pink-100"
+                    >
+                        Каталог →
+                    </Link>
+                </div>
+            </div>
 
-                <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6 text-white">
-                    <h2 className="text-xl sm:text-2xl font-bold tracking-tight drop-shadow-sm group-hover:text-pink-100 transition-colors">
-                        {shop.name}
-                    </h2>
-                    {shop.address && (
-                        <p className="text-sm text-white/85 mt-1 line-clamp-1 flex items-center gap-1.5">
-                            <span className="opacity-80">📍</span>
-                            {shop.address}
+            {/* Планшет и десктоп */}
+            <div className="hidden sm:block">
+                <Link
+                    to={catalogTo}
+                    state={linkState}
+                    className="block relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-pink-100 via-rose-50 to-orange-50"
+                >
+                    {shop.avatar ? (
+                        <img
+                            src={mediaUrl(shop.avatar)}
+                            alt=""
+                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                    ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <Avatar src={null} name={shop.name} size="xl" className="w-28 h-28 text-4xl ring-4 ring-white/50 shadow-xl" />
+                        </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900/75 via-gray-900/20 to-transparent" />
+
+                    {shop.isVerified && (
+                        <span className="absolute top-4 left-4 z-10 inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-white/95 text-emerald-700 backdrop-blur-sm">
+                            ✓ Проверен
+                        </span>
+                    )}
+
+                    <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                        <h2 className="text-2xl font-bold tracking-tight drop-shadow-sm group-hover:text-pink-100 transition-colors">
+                            {shop.name}
+                        </h2>
+                        {shop.address && (
+                            <p className="text-sm text-white/85 mt-1 line-clamp-1">{shop.address}</p>
+                        )}
+                    </div>
+                </Link>
+
+                <div className="p-6">
+                    <div className="flex items-center justify-between gap-3 mb-4">
+                        <ShopMetaBadges shop={shop} size="md" />
+                    </div>
+                    {(shop.serviceDistricts?.length > 0) && (
+                        <p className="text-xs text-gray-500 mb-4 line-clamp-2">
+                            Районы: {shop.serviceDistricts.slice(0, 4).join(', ')}
+                            {shop.serviceDistricts.length > 4 ? '…' : ''}
                         </p>
                     )}
-                </div>
-            </Link>
-
-            <div className="p-5 sm:p-6">
-                <div className="flex items-center justify-between gap-3 mb-5">
-                    <div className="flex items-center gap-2 text-sm">
-                        {shopRatingStars(shop) ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 font-semibold">
-                                {shopRatingStars(shop)}
-                            </span>
-                        ) : (
-                            <span className="text-gray-400 text-xs">Новый магазин</span>
-                        )}
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 justify-end">
-                        {shop.sameDayDelivery !== false && (
-                            <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">
-                                Сегодня
-                            </span>
-                        )}
-                        {shop.deliveryTime && (
-                            <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2.5 py-1 rounded-full">
-                                🚚 {shop.deliveryTime}
-                            </span>
-                        )}
+                    <div className="flex items-center gap-3">
+                        <Link
+                            to={catalogTo}
+                            state={linkState}
+                            className={`${btnPrimary} flex-1 py-3 rounded-2xl shadow-md shadow-pink-500/20`}
+                        >
+                            Смотреть каталог →
+                        </Link>
+                        <div onClick={(e) => e.preventDefault()}>
+                            <ShopActionButtons shop={shop} compact />
+                        </div>
                     </div>
                 </div>
-                {(shop.serviceDistricts?.length > 0) && (
-                    <p className="text-xs text-gray-500 mb-4 line-clamp-2">
-                        Районы: {shop.serviceDistricts.slice(0, 4).join(', ')}
-                        {shop.serviceDistricts.length > 4 ? '…' : ''}
-                    </p>
-                )}
-
-                <Link
-                    to={catalogPath(shop.id, { fromShops: true })}
-                    state={{ shopName: shop.name }}
-                    className={`${btnPrimary} w-full py-3.5 rounded-2xl shadow-md shadow-pink-500/20 group/btn`}
-                >
-                    <span className="inline-flex items-center justify-center gap-2">
-                        Смотреть каталог
-                        <span className="transition-transform group-hover/btn:translate-x-0.5">→</span>
-                    </span>
-                </Link>
             </div>
         </article>
     );
@@ -820,7 +885,7 @@ function ShopList() {
                 </div>
             ) : view === 'products' ? (
                 filteredProducts.length > 0 ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
+                    <div className="grid grid-cols-2 gap-2.5 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {filteredProducts.map(product => (
                             <ProductCatalogCard
                                 key={product.id}
@@ -844,7 +909,7 @@ function ShopList() {
                     </div>
                 )
             ) : sortedShops.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
+                <div className="flex flex-col gap-2 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-6 lg:gap-8">
                     {sortedShops.map(shop => (
                         <ShopCatalogCard key={shop.id} shop={shop} />
                     ))}
